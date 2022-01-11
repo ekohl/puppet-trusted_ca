@@ -2,7 +2,7 @@
 
 require 'spec_helper_acceptance'
 
-describe 'trusted_ca' do
+describe 'trusted_ca', order: :defined do
   context 'failure before cert' do
     # Set up site first, verify things don't work
     it 'sets up apache for testing' do
@@ -31,15 +31,13 @@ describe 'trusted_ca' do
   end
 
   context 'success after cert' do
-    it 'works idempotently with no errors' do
-      pp = <<-EOS
-      class { 'trusted_ca': }
-      trusted_ca::ca { 'test': source => '/etc/ssl-secure/test.crt' }
-      EOS
-
-      # Run it twice and test for idempotency
-      apply_manifest(pp, catch_failures: true)
-      apply_manifest(pp, catch_changes: true)
+    it_behaves_like 'an idempotent resource' do
+      let(:manifest) do
+        <<-PUPPET
+        class { 'trusted_ca': }
+        trusted_ca::ca { 'test': source => '/etc/ssl-secure/test.crt' }
+        PUPPET
+      end
     end
 
     describe package('ca-certificates') do
